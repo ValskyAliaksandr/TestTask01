@@ -1,0 +1,73 @@
+﻿@page "/"
+@inject ControgentServises controgentServises
+<div class="row">
+<div style="display:block;">
+    <div class="mb-3">
+        <label for="Input1" class="form-label">Имя:</label>
+        <input type="text" @bind="polzovatel.Name" id="Input1" placeholder="Иванов">
+    </div>
+    <div class="mb-3">
+        <label for="Input2" class="form-label">Электронная почта:</label>
+        <input type="email" @bind="polzovatel.Email"  id="Input2" placeholder="name@example.com">
+            @if (isEmailEmpty)
+            {
+                <b>заполните адрес электронной почты</b>
+            }
+        </div>
+</div>
+</div>
+<div style="display:block;">
+    <label for="Input3" class="form-label">УНП:</label>
+    <input type="text" size="9"  id="Input3" placeholder="123456789">
+    <button @onclick="verify" class="btn btn-outline-success">Проверить</button>
+</div>
+@if (polzovatel != null && polzovatel.OrderControgents != null)
+{
+    <table class="table table-hover">
+        <thead class="table-secondary">
+            <tr>
+                <td>#</td>
+                <td>УНП</td>
+                <td>Наименование</td>
+                <td>Наличие в локальной БД</td>
+                <td>Статус на портале</td>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int npp = 0;
+                foreach (var i in polzovatel.OrderControgents)
+                {
+                    <tr>
+                        <td>@npp</td>
+                        <td>@i.Controgent?.UNP</td>
+                        <td>@i.Controgent?.Name</td>
+                        <td>@if (i.Controgent.isBase) { <span>ДА</span>}</td>
+                        <td>@i.Controgent?.Status</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code{
+    Polzovatel polzovatel { get; set; } = new();
+    bool isEmailEmpty;
+    Controgent? controgent { get; set; } = new();
+    string UNP = string.Empty;
+    void verify()
+    {
+        if (string.IsNullOrEmpty(polzovatel.Email))
+        {
+            isEmailEmpty = true;
+            return;
+        }
+        else isEmailEmpty = false;
+        if (polzovatel.OrderControgents is null)
+        {
+            polzovatel.OrderControgents = new List<OrderControgent>();
+        }
+        //polzovatel.OrderControgents.
+    }
+}
