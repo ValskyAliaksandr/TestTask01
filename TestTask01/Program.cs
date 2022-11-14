@@ -7,13 +7,15 @@ using TestTask01.Servisers;
 
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContextPool<TestTask01DB>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("TestTask01DB1")));
+//builder.Services.AddDbContextPool<TestTask01DB>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("TestTask01DB1")));
+builder.Services.AddDbContextPool<TestTask01DB>(options => options.UseSqlite(builder.Configuration.GetConnectionString("TestTask01DB2")));
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 builder.Services.AddScoped<ControgentServises>();
 builder.Services.AddScoped<PolzovatelServises>();
+builder.Services.AddScoped<MailinglistTaskServises>();
 builder.Services.AddScoped<IPolzovatelServises, PolzovatelServises>();
 builder.Services.AddScoped<IControgentServises, ControgentServises>();
 

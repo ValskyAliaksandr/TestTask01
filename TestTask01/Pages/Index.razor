@@ -9,7 +9,7 @@
     </div>
     <div class="mb-3">
         <label for="Input2" class="form-label">Электронная почта:</label>
-            <input type="email" @bind="@polzovatel.Email"   id="Input2" placeholder="name@example.com">
+            <input type="email" @bind="@polzovatel.Email" @onfocusout="isUserInBase" id="Input2" placeholder="name@example.com">
             @if (isEmailEmpty)
             {
                 <b>заполните адрес электронной почты</b>
@@ -19,10 +19,9 @@
 </div>
 <div style="display:block;">
     <label for="Input3" class="form-label">УНП:</label>
-    <input type="text" size="9"  id="Input3" placeholder="123456789">
+    <input type="text" size="9" @bind="UNP"  id="Input3" placeholder="123456789">
     <div class="btn btn-group">
-    <button @onclick="verify" class="btn btn-outline-success">Проверить</button>
-    
+        <button @onclick="Verify" class="btn btn-outline-success">Проверить</button>    
     </div>
 </div>
 @if (polzovatel != null && polzovatel.OrderControgents != null)
@@ -42,15 +41,16 @@
                 int npp = 0;
                 foreach (var i in polzovatel.OrderControgents)
                 {
+                    npp++;
                     <tr>
                         <td>@npp</td>
                         <td>@i.Controgent?.UNP</td>
                         <td>@i.Controgent?.Name</td>
-                        <td>@if (i.Controgent.isBase) { <span>ДА</span>}</td>
+                        <td>@if (i.Controgent.isBase) { <span>ДА</span>}else{<span>НЕТ</span>}</td>
                         <td>@i.Controgent?.Status</td>
-                        @if (controgent != null && !controgent.isBase)
+                        @if (i.Controgent != null && !i.Controgent.isBase)
                         {
-                            <button @onclick="ContragentAdd" class="btn btn-outline-success">Добавить УНП в базу</button>
+                            <button @onclick="(()=>ContragentAdd(i))" class="btn btn-outline-success">Добавить УНП в базу</button>
                         }
                     </tr>
                 }
@@ -64,7 +64,8 @@
     bool isEmailEmpty;
     Controgent? controgent { get; set; } = new();
     string UNP = string.Empty;
-    async void verify()
+    
+    async Task Verify()
     {
         if (string.IsNullOrEmpty(polzovatel.Email))
         {
@@ -72,19 +73,46 @@
             return;
         }
         else isEmailEmpty = false;
-        await polzovatelServises.GetPolzovatelByEmail(polzovatel.Email);
 
-        if (polzovatel.OrderControgents!=null)
-        polzovatel.OrderControgents.Add(new OrderControgent { Controgent = new Controgent { UNP = UNP } });
+        await ControgentVerify();
+        if (polzovatel.OrderControgents!=null && controgent!=null)
+            polzovatel.OrderControgents.Add(new OrderControgent { Controgent = new Controgent() 
+                {Name=controgent.Name, UNP=controgent.UNP, isBase= controgent.isBase, Id=controgent.Id, Status = controgent.Status } });
     }
 
-    void ContragentAdd()
-    {
+    void ContragentAdd(OrderControgent ordercontrogent)
+    {        
+        ordercontrogent.Controgent.isBase = true;
+    }
 
+    async Task ControgentVerify()
+    {
+        await controgentServises.ControgentIsBaseByUNP(UNP);
+        var controgentdb = controgentServises.Controgent;
+        if (controgentdb != null)
+        {
+            controgent = controgentdb;
+            controgent.isBase = true;
+        }
+        else
+        {
+            controgent = new Controgent() { UNP = UNP}; 
+        }
+        await controgentServises.GetStatusPortalByUNP(UNP);
+        if (controgentServises.Controgent != null)
+        {            
+            controgent.Status = controgentServises.Controgent.Status;
+        }
+        else
+        {
+            controgent.Status = "нет на портале";
+        }
     }
 
     async Task isUserInBase()
     {
+        if (string.IsNullOrEmpty(polzovatel.Email)) return;
+        await polzovatelServises.GetPolzovatelByEmail(polzovatel.Email);
         var polzovateldb = polzovatelServises.Polzovatel;
         if (polzovateldb != null)
         {
@@ -94,7 +122,8 @@
         }
         else
         {
-
+            await polzovatelServises.PolzovatelEdit(polzovatel);
+            polzovatel.OrderControgents = new List<OrderControgent>();
         }
     }
 }

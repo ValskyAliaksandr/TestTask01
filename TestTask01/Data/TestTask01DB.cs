@@ -9,7 +9,8 @@ namespace TestTask01.Data
         public DbSet<OrderControgent> OrderControgents { get; set; }
 
         public TestTask01DB(DbContextOptions<TestTask01DB> options) : base(options)
-        { 
+        {
+            Database.EnsureCreated();
         }
     }
 }
