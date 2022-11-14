@@ -1,0 +1,33 @@
+﻿@page "/PolzovatelList"
+@inject IPolzovatelServises polzovatelServises
+
+<div >
+    <table class="table table-hover" style="display:block;">
+        @if (Polzovatels != null)
+        {
+            <thead class="table-secondary">
+                <tr>
+                    <td>Имя</td>
+                    <td>Email</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var i in Polzovatels)
+                {
+                <tr>
+                    <td>@i.Name</td>
+                    <td>@i.Email</td>
+                </tr>
+                }
+            </tbody>
+        }
+    </table>
+</div>
+@code {
+    List<Polzovatel>? Polzovatels { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await polzovatelServises.GetPolzovatelList();
+        Polzovatels = polzovatelServises.Polzovatels;
+    }
+}

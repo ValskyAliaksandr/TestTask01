@@ -1,14 +1,15 @@
 ﻿@page "/"
-@inject ControgentServises controgentServises
+@inject IControgentServises controgentServises
+@inject IPolzovatelServises polzovatelServises
 <div class="row">
 <div style="display:block;">
     <div class="mb-3">
         <label for="Input1" class="form-label">Имя:</label>
-        <input type="text" @bind="polzovatel.Name" id="Input1" placeholder="Иванов">
+        <input type="text" @bind="@polzovatel.Name" id="Input1" placeholder="Иванов">
     </div>
     <div class="mb-3">
         <label for="Input2" class="form-label">Электронная почта:</label>
-        <input type="email" @bind="polzovatel.Email"  id="Input2" placeholder="name@example.com">
+            <input type="email" @bind="@polzovatel.Email"   id="Input2" placeholder="name@example.com">
             @if (isEmailEmpty)
             {
                 <b>заполните адрес электронной почты</b>
@@ -19,7 +20,10 @@
 <div style="display:block;">
     <label for="Input3" class="form-label">УНП:</label>
     <input type="text" size="9"  id="Input3" placeholder="123456789">
+    <div class="btn btn-group">
     <button @onclick="verify" class="btn btn-outline-success">Проверить</button>
+    
+    </div>
 </div>
 @if (polzovatel != null && polzovatel.OrderControgents != null)
 {
@@ -44,6 +48,10 @@
                         <td>@i.Controgent?.Name</td>
                         <td>@if (i.Controgent.isBase) { <span>ДА</span>}</td>
                         <td>@i.Controgent?.Status</td>
+                        @if (controgent != null && !controgent.isBase)
+                        {
+                            <button @onclick="ContragentAdd" class="btn btn-outline-success">Добавить УНП в базу</button>
+                        }
                     </tr>
                 }
             }
@@ -56,7 +64,7 @@
     bool isEmailEmpty;
     Controgent? controgent { get; set; } = new();
     string UNP = string.Empty;
-    void verify()
+    async void verify()
     {
         if (string.IsNullOrEmpty(polzovatel.Email))
         {
@@ -64,10 +72,29 @@
             return;
         }
         else isEmailEmpty = false;
-        if (polzovatel.OrderControgents is null)
+        await polzovatelServises.GetPolzovatelByEmail(polzovatel.Email);
+
+        if (polzovatel.OrderControgents!=null)
+        polzovatel.OrderControgents.Add(new OrderControgent { Controgent = new Controgent { UNP = UNP } });
+    }
+
+    void ContragentAdd()
+    {
+
+    }
+
+    async Task isUserInBase()
+    {
+        var polzovateldb = polzovatelServises.Polzovatel;
+        if (polzovateldb != null)
         {
-            polzovatel.OrderControgents = new List<OrderControgent>();
+            polzovatel = polzovateldb;
+            await polzovatelServises.GetControgentList(polzovatel);
+            polzovatel.OrderControgents = polzovatelServises.OrderControgents;
         }
-        //polzovatel.OrderControgents.
+        else
+        {
+
+        }
     }
 }
